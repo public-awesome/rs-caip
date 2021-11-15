@@ -3,14 +3,12 @@ use std::fmt;
 use std::str::FromStr;
 
 struct Caip2Spec<'a> {
-  delimiter: &'a str,
   chain_id_regex: &'a str,
   namespace_regex: &'a str,
   reference_regex: &'a str,
 }
 
 const CAIP2_SPEC: Caip2Spec<'static> = Caip2Spec {
-  delimiter: ":",
   chain_id_regex: r"[-:a-zA-Z0-9]{5,41}",
   namespace_regex: r"[-a-z0-9]{3,8}",
   reference_regex: r"[-a-zA-Z0-9]{1,32}",
@@ -24,7 +22,7 @@ pub enum ChainIdError {
 }
 
 #[derive(Debug, PartialEq)]
-struct ChainId {
+pub struct ChainId {
   namespace: String,
   reference: String,
 }
@@ -46,12 +44,12 @@ impl FromStr for ChainId {
     if !Regex::new(CAIP2_SPEC.chain_id_regex).unwrap().is_match(s) {
       return Err(ChainIdError::InvalidChainId);
     }
-    let params: Vec<&str> = s.split(CAIP2_SPEC.delimiter).collect();
-    if params.len() != 2 {
+    let c: Vec<&str> = s.split(":").collect();
+    if c.len() != 2 {
       return Err(ChainIdError::InvalidChainId);
     }
 
-    let namespace = params[0];
+    let namespace = c[0];
     if !Regex::new(CAIP2_SPEC.namespace_regex)
       .unwrap()
       .is_match(namespace)
@@ -59,7 +57,7 @@ impl FromStr for ChainId {
       return Err(ChainIdError::InvalidNamespace);
     }
 
-    let reference = params[1];
+    let reference = c[1];
     if !Regex::new(CAIP2_SPEC.reference_regex)
       .unwrap()
       .is_match(reference)
